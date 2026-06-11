@@ -4,6 +4,12 @@ This notebook demonstrates possible applications in network security analysis us
 
 This presents typical patterns and techniques for analyzing network flow data, suitable for identifying anomalies, understanding communication patterns, and extracting insights from network traffic data captured by network monitoring tools such as [Zeek](https://zeek.org/), [Suricata](https://suricata.io/), [Argus](https://qosient.com/argus/), or [Wireshark](https://www.wireshark.org/).
 
+<p align="center">
+  <img src="renderings/schema.png" alt="Schema Visualization"/>
+  <br>
+  <sub>The schema of the CIC-UNSW-NB15 dataset represented as a graph.</sub>
+</p>
+
 ## Key objectives
 
 Amongst others, in this notebook, we will execute a complete Graph Data Science workflow tailored for security analysts to:
