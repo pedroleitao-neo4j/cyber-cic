@@ -4,7 +4,7 @@ This notebook demonstrates possible applications in network security analysis us
 
 This presents typical patterns and techniques for analyzing network flow data, suitable for identifying anomalies, understanding communication patterns, and extracting insights from network traffic data captured by network monitoring tools such as [Zeek](https://zeek.org/), [Suricata](https://suricata.io/), [Argus](https://qosient.com/argus/), or [Wireshark](https://www.wireshark.org/).
 
-## Key objectives
+## Key objectives
 
 Amongst others, in this notebook, we will execute a complete Graph Data Science workflow tailored for security analysts to:
 
@@ -14,3 +14,20 @@ Amongst others, in this notebook, we will execute a complete Graph Data Science 
 - Representation Learning (FastRP): Generate low-dimensional, topology-aware node embeddings that capture the unique structural footprint of every host.
 - Behavioral Similarity (KNN & Cosine Similarity): Identify hidden, look-alike malicious actors by streaming similarity metrics against known indicators of compromise (IoCs).
 - Sub-graph Visualization: Extract and render structural paths (CONNECTED_TO, IN_SUBNET) to visually compare the blast radiuses of suspicious network nodes.
+
+## Using this notebook
+
+Start by creating a `.env` file in the root of this project with the following content, replacing the placeholders with your actual Neo4j connection details:
+
+```env
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_password
+NEO4J_DATABASE=neo4j
+RENDER_DIR=renderings
+DATASET_PATH=.data/CIC-UNSW/CICFlowMeter_out.csv
+```
+
+You should also download the [CIC-UNSW-NB15](https://www.unb.ca/cic/datasets/cic-unsw-nb15.html) dataset and place its content in `.data/CIC-UNSW/`. The `CICFlowMeter_out.csv` file contains the processed flow records that we will ingest into Neo4j.
+
+Configure your Python environment with the required dependencies (`conda env update` if you are using the provided `environment.yml`), and then run [`loader.ipynb`](./loader.ipynb) to ingest the dataset into Neo4j. After the data is loaded, you can execute [`analysis.ipynb`](./analysis.ipynb) for exploratory data analysis and graph visualizations, and then proceed to [`gds.ipynb`](./gds.ipynb) to apply Graph Data Science algorithms for deeper insights.
