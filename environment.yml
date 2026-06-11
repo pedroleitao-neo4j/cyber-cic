@@ -1,0 +1,19 @@
+name: cic
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pandas
+  - python-dotenv
+  - jupyterlab
+  - ipykernel
+  - ipywidgets
+  - matplotlib
+  - seaborn
+  - tqdm
+  - pip
+  - pip:
+    - neo4j
+    - neo4j-viz
+    - playwright
