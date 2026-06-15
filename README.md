@@ -12,14 +12,14 @@ This presents typical patterns and techniques for analyzing network flow data, s
 
 ## Key objectives
 
-Amongst others, in this notebook, we will execute a complete Graph Data Science workflow tailored for security analysts to:
+These notebooks demonstrate, end to end, why network security is a *graph* problem and what Neo4j and its Graph Data Science (GDS) library bring to it that a flat table of flow records cannot. Concretely, they show how to:
 
-- Understand how networks and network traffic can be represented as graphs, and the types of insights that can be derived from such representations.
-- Graph Modeling: Map the raw tabular data of the CIC-UNSW-NB15 dataset into a highly optimized graph schema.
-- In-Memory Projections: Create high-performance graph projections suitable for cloud-ephemeral managed environments (like Neo4j AuraDS).
-- Representation Learning (FastRP): Generate low-dimensional, topology-aware node embeddings that capture the unique structural footprint of every host.
-- Behavioral Similarity (KNN & Cosine Similarity): Identify hidden, look-alike malicious actors by streaming similarity metrics against known indicators of compromise (IoCs).
-- Sub-graph Visualization: Extract and render structural paths (CONNECTED_TO, IN_SUBNET) to visually compare the blast radiuses of suspicious network nodes.
+- **Model network traffic as a graph.** Turn the raw tabular CIC-UNSW-NB15 flow records into a connected `(:Host)-[:CONNECTED_TO]->(:Host)` / `(:Host)-[:IN_SUBNET]->(:Subnet)` schema, so that *who talks to whom* becomes a first-class, queryable structure rather than columns in a row.
+- **Query and explore communication patterns with Cypher.** Use Neo4j to navigate the graph interactively — pivoting from a single suspicious host to its peers, its subnet, and its blast radius — and render sub-graphs to make those relationships visible.
+- **Project graphs in memory for analytics.** Build high-performance, label-free GDS projections suitable for cloud-ephemeral, managed environments such as Neo4j AuraDS.
+- **Learn structural representations with FastRP.** Generate low-dimensional, topology-aware node embeddings that capture each host's unique structural footprint in the communication graph.
+- **Find look-alike actors with graph similarity (KNN & cosine).** Surface hidden, behaviourally similar malicious hosts by streaming similarity metrics against known indicators of compromise (IoCs) — no labels required.
+- **Use the graph as a feature store for ML.** Compute structural features (degree, PageRank, betweenness, FastRP embeddings) with GDS and show, in a controlled A/B test, that they measurably improve a supervised classifier over per-flow statistics alone.
 
 ## Using this notebook
 
@@ -115,10 +115,12 @@ PR-AUC - the honest metric under class imbalance - rises by **+0.0206**, and the
 
 ### Bottom line
 
-The three approaches are **complementary, not competing**:
+The common thread across all three notebooks is that **modelling traffic as a graph in Neo4j adds a dimension the flat flow table cannot capture: the structure of *who talks to whom*.** The statistical baseline, which never sees that structure, is exactly where detection is weakest — and it is the GDS structural features that close the gap.
 
-- **`baseline.ipynb`** needs no labels and is fully explainable, but is blind to graph structure - best as a transparent first line of defence for loud-and-weird outliers.
-- **`gds.ipynb`** uses the same FastRP embeddings *unsupervised*, to find look-alike hosts near a known IoC.
-- **`ml-gds.ipynb`** closes the loop: when labels exist, graph features are a cheap, high-value addition to a supervised model. **The graph is a feature store, not just a query engine.**
+The three approaches are **complementary, not competing**, and each uses the graph differently:
+
+- **`baseline.ipynb`** uses no graph at all — it scores each flow in isolation. It needs no labels and is fully explainable, making it a transparent first line of defence for loud-and-weird outliers, but its structural blindness is precisely its weakness on stealthy, low-volume attacks.
+- **`gds.ipynb`** uses the graph *unsupervised*: FastRP embeddings of the communication graph let you find hosts that *behave like* a known IoC, even when their flow statistics differ — pure Neo4j + GDS, no labels and no trained model.
+- **`ml-gds.ipynb`** uses the graph as a **feature store for supervised ML**: when labels exist, GDS structural features (degree, PageRank, betweenness, FastRP) are a cheap, high-value addition that lifts every metric and carries the top feature-importance ranks. **Neo4j is not just a query engine here — the graph itself is where the most predictive signal comes from.**
 
 A few caveats are worth keeping in mind: the benign down-sampling makes the class ratio friendlier than production's ~2.5% malicious (prefer PR-AUC over accuracy); the graph features here are static over the whole capture window (in production they would be recomputed on a rolling window); and with only ~40 hosts the structural feature space is small - the approach pays off far more on enterprise-scale graphs with thousands of endpoints.
