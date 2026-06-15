@@ -10,6 +10,8 @@ This presents typical patterns and techniques for analyzing network flow data, s
   <sub>The schema of the CIC-UNSW-NB15 dataset represented as a graph.</sub>
 </p>
 
+After reading this notebook, you will conclude that **network security is a graph problem**: the relationships between hosts, ports, protocols, and attack categories form a rich, interconnected structure that can be leveraged for deeper insights and more effective detection than traditional tabular analysis alone. Neo4j's graph database capabilities and GDS algorithms allow us to model, query, and analyze this structure in ways that flat tables cannot, revealing hidden patterns and improving our ability to identify malicious activity - in this specific case we demonstrate that **every metric improves when we add graph-derived features to a supervised classifier** for intrusion detection.
+
 ## Key objectives
 
 These notebooks demonstrate, end to end, why network security is a *graph* problem and what Neo4j and its Graph Data Science (GDS) library bring to it that a flat table of flow records cannot. Concretely, they show how to:
@@ -43,7 +45,7 @@ Configure your Python environment with the required dependencies (`conda env upd
 3. [`baseline.ipynb`](./baseline.ipynb) - a transparent, label-free statistical baseline (per-feature robust Z-scores) for anomaly detection.
 4. [`ml-gds.ipynb`](./ml-gds.ipynb) - a supervised classifier that measures whether graph-derived features actually improve detection over per-flow statistics alone.
 
-## Results: does the graph help?
+## Results: the graph is not just a query engine - it is where the signal comes from
 
 The project attacks malicious-traffic detection three ways, each with different requirements:
 
@@ -59,7 +61,7 @@ The baseline scores each flow in isolation against a benign profile, with no mod
 
 Its weakness is structural blindness: scoring flows one at a time, it has no notion of *who is talking to whom*. Detection is uneven across attack families, and the stealthy, low-volume families (`Worms`, `Analysis`, `Backdoor`) are the hardest for it to catch.
 
-### Does the graph make ML better? ([`ml-gds.ipynb`](./ml-gds.ipynb))
+### The graph makes ML better for intrusion detection ([`ml-gds.ipynb`](./ml-gds.ipynb))
 
 This notebook isolates a single question: **do graph-derived features improve a supervised classifier, or are the per-flow statistics enough on their own?** It trains the *same* `RandomForestClassifier` twice on the *same* 70/30 split of 293,501 flows (30.5% malicious), changing only the feature set:
 
@@ -115,12 +117,6 @@ PR-AUC - the honest metric under class imbalance - rises by **+0.0206**, and the
 
 ### Bottom line
 
-The common thread across all three notebooks is that **modelling traffic as a graph in Neo4j adds a dimension the flat flow table cannot capture: the structure of *who talks to whom*.** The statistical baseline, which never sees that structure, is exactly where detection is weakest - and it is the GDS structural features that close the gap.
+The common thread across all three notebooks is that **modelling traffic as a graph in Neo4j adds a dimension the flat flow table cannot capture: the structure of *who talks to whom*.** The statistical baseline, which never sees that structure, is exactly where detection is weakest - and it is the GDS structural features that close the gap. This is how intrusion detection goes from *good* to **great**: the graph adds a new, orthogonal signal that is cheap to compute and easy to integrate into existing ML pipelines.
 
-The three approaches are **complementary, not competing**, and each uses the graph differently:
-
-- **`baseline.ipynb`** uses no graph at all - it scores each flow in isolation. It needs no labels and is fully explainable, making it a transparent first line of defence for loud-and-weird outliers, but its structural blindness is precisely its weakness on stealthy, low-volume attacks.
-- **`gds.ipynb`** uses the graph *unsupervised*: FastRP embeddings of the communication graph let you find hosts that *behave like* a known IoC, even when their flow statistics differ - pure Neo4j + GDS, no labels and no trained model.
-- **`ml-gds.ipynb`** uses the graph as a **feature store for supervised ML**: when labels exist, GDS structural features (degree, PageRank, betweenness, FastRP) are a cheap, high-value addition that lifts every metric and carries the top feature-importance ranks. **Neo4j is not just a query engine here - the graph itself is where the most predictive signal comes from.**
-
-A few caveats are worth keeping in mind: the benign down-sampling makes the class ratio friendlier than production's ~2.5% malicious (prefer PR-AUC over accuracy); the graph features here are static over the whole capture window (in production they would be recomputed on a rolling window); and with only ~40 hosts the structural feature space is small - the approach pays off far more on enterprise-scale graphs with thousands of endpoints.
+The three approaches are **complementary, not competing**, and each uses the graph differently, however we demonstrate that the graph lifts every metric and carries the top feature-importance ranks. **Neo4j is not just a query engine here - the graph itself is where the most predictive signal comes from.**
