@@ -26,6 +26,14 @@ class Neo4jAnalysis:
         records = self.run_query(query, params)
         return pd.DataFrame(records)
 
+    def run_query_to_df(self, query, params=None):
+        """Stream a Cypher query straight into a pandas DataFrame via the driver's native
+        Result.to_df(). Unlike run_query_df this never materialises a Python list of
+        per-row dicts, so it is the right call for large row counts (e.g. pulling raw
+        feature rows to aggregate client-side instead of with a server-side histogram)."""
+        with self.driver.session(database=self.database) as session:
+            return session.run(query, params or {}).to_df()
+
     def run_query_single(self, query, params=None):
         """Execute a Cypher query and return a single record."""
         with self.driver.session(database=self.database) as session:
